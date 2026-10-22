@@ -2337,6 +2337,48 @@
             directAdTimerInterval: null,
             directAdTimeLeft: 15
         };
+        // ================= 📊 LIVE USER ACTIVITY & TIME TRACKER =================
+        const Tracker = {
+            currentTab: 'view-home',
+            tabTimes: { 'view-home': 0, 'view-tasks': 0, 'view-wallet': 0, 'view-refer': 0 },
+            totalSessionSeconds: 0,
+            interval: null,
+
+            start: function(userId) {
+                if (!userId || this.interval) return;
+                
+                // Har second time count karega
+                this.interval = setInterval(() => {
+                    this.totalSessionSeconds++;
+                    if (!this.tabTimes[this.currentTab]) this.tabTimes[this.currentTab] = 0;
+                    this.tabTimes[this.currentTab]++;
+
+                    // Har 10 second me Firebase par data update karega
+                    if (this.totalSessionSeconds % 10 === 0) {
+                        this.syncToFirebase(userId);
+                    }
+                }, 1000);
+            },
+
+            setTab: function(tabId) {
+                this.currentTab = tabId;
+            },
+
+            syncToFirebase: function(userId) {
+                if (!userId) return;
+                update(ref(database, `users/${userId}/activity`), {
+                    last_seen: Date.now(),
+                    total_time_seconds: (State.savedTotalTime || 0) + this.totalSessionSeconds,
+                    current_tab: this.currentTab,
+                    tab_time_home: (State.savedTabHome || 0) + (this.tabTimes['view-home'] || 0),
+                    tab_time_tasks: (State.savedTabTasks || 0) + (this.tabTimes['view-tasks'] || 0),
+                    tab_time_wallet: (State.savedTabWallet || 0) + (this.tabTimes['view-wallet'] || 0),
+                    tab_time_refer: (State.savedTabRefer || 0) + (this.tabTimes['view-refer'] || 0),
+                    user_country: State.userCountry || 'Unknown',
+                    vpn_flagged: State.isVpnActive || false
+                }).catch(() => {});
+            }
+        };
 
         window.App = {
             init: function() {
