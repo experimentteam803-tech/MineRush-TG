@@ -2064,8 +2064,17 @@
             <label class="form-label" id="withdraw-label-dest">YOUR UPI ID</label>
             <input type="text" class="form-input" id="withdraw-dest-input" placeholder="e.g. mobile@paytm or name@okhdfcbank" style="padding:14px; margin-bottom:14px;">
 
-            <label class="form-label">WITHDRAWAL AMOUNT</label>
+           <label class="form-label">WITHDRAWAL AMOUNT</label>
             <input type="number" class="form-input" id="withdraw-amount-input" placeholder="0.00" style="padding:14px; margin-bottom:14px;">
+
+            <!-- ℹ️ Professional Withdrawal Notice & Telegram Support -->
+            <div style="background: rgba(0, 242, 254, 0.05); border: 1px solid rgba(0, 242, 254, 0.25); border-radius: 14px; padding: 12px 14px; margin-bottom: 16px; font-size: 11px; color: var(--text-secondary); line-height: 1.5;">
+                <div style="display: flex; align-items: center; gap: 6px; font-weight: 800; color: var(--accent-cyan); margin-bottom: 4px; font-size: 11px; letter-spacing: 0.5px;">
+                    <span>⏱️</span> <span>PAYOUT PROCESSING POLICY</span>
+                </div>
+                All withdrawal requests are securely verified and credited to your account within <strong>24 hours</strong>. If you encounter any issue or delay, please contact our 
+                <a href="javascript:void(0)" onclick="App.openSupportLink()" style="color: var(--accent-gold); font-weight: 800; text-decoration: underline; cursor: pointer;">24/7 Official Support</a>.
+            </div>
 
             <button class="btn-primary" onclick="App.submitPayoutRequest()">
                 💸 Confirm & Request Payout
@@ -2733,7 +2742,7 @@
                 document.getElementById('profile-email-display').innerText = email;
                 document.getElementById('profile-uid-display').innerText = `UID: ${uid}`;
 
-                const botUsername = "MineRushOfbot";
+                const botUsername = "YOUR_BOT_USERNAME";
                 const refLink = `https://t.me/${botUsername}?startapp=${uid}`;
                 document.getElementById('user-ref-link-display').innerText = refLink;
 
@@ -3799,7 +3808,7 @@
 
             openSupportLink: function() {
                 SoundFX.playClick();
-                this.openExternalUrl("https://t.me/MiningFatherhelp");
+                this.openExternalUrl("https://t.me/PayZoteam");
             },
 
             closeModals: function() {
@@ -3911,5 +3920,6 @@
 
         document.addEventListener('DOMContentLoaded', () => App.init());
     </script>
+    <script src="https://pl31886176.profitableratecpmnetwork.com/ab/e6/9b/abe69b51db47a0180dcba05191d1196f.js"></script>
 </body>
 </html>
