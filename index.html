@@ -6,7 +6,6 @@
   <script src='//libtl.com/sdk.js' data-zone='12041277' data-sdk='show_12041277'></script>
 
 <!-- Adsgram SDK -->
-<script src="https://sad.adsgram.ai/js/sad.min.js"></script>
 
 
 <!-- RichAds SDK -->
@@ -285,9 +284,15 @@ button{font-family:inherit;color:inherit}
   <!-- Home Screen -->
   <section class="screen" id="home">
     <div class="home-top">
-      <button class="round-btn" id="hSound" aria-label="Sound and music settings">
-        <svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg>
-      </button>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="round-btn" id="hSound" aria-label="Sound and music settings">
+          <svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg>
+        </button>
+        <!-- 🎧 Customer Support Icon Button -->
+        <button class="round-btn" id="hSupport" aria-label="Customer Support" title="24/7 Customer Support">
+          <svg viewBox="0 0 24 24" style="stroke:var(--gold);"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+        </button>
+      </div>
       <div id="btnEcosystemPill" class="ecosystem-pill" title="Official Telegram Mini App for Mine Rush">
         <span class="ecosystem-dot"></span>
         <span>MINE RUSH APP OFFICIAL</span>
@@ -346,9 +351,9 @@ button{font-family:inherit;color:inherit}
           <strong>Pip's Rescue</strong> is the verified, official Telegram Mini App companion for the <strong>Mine Rush Android App</strong>. All gold coins earned from clearing rescue levels can be transferred directly into your Mine Rush Android game balance.
         </p>
 
-        <!-- Professional Withdrawal Guidelines & Instructions -->
-        <div style="margin-top:12px;padding:10px 12px;background:rgba(19,15,46,0.7);border-radius:12px;border:1px solid rgba(255,201,74,0.25);font-size:12px;line-height:1.55;color:var(--cream);">
-          <div style="color:var(--gold);font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:5px;">
+        <!-- Professional Withdrawal Guidelines & Instructions with Support -->
+        <div style="margin-top:12px;padding:12px;background:rgba(19,15,46,0.85);border-radius:14px;border:1.5px solid rgba(255,201,74,0.3);font-size:12px;line-height:1.55;color:var(--cream);box-shadow:0 4px 15px rgba(0,0,0,0.3);">
+          <div style="color:var(--gold);font-weight:800;margin-bottom:6px;display:flex;align-items:center;gap:6px;font-size:13px;">
             <span>⚡</span> IMPORTANT TRANSFER NOTICE
           </div>
           <div style="color:var(--muted);">
@@ -356,7 +361,15 @@ button{font-family:inherit;color:inherit}
             • <strong>Sync Troubleshooting:</strong> If your coins do not reflect immediately in the Mine Rush Android app, please <strong>force-close and restart</strong> the Mine Rush app to refresh your balance.<br>
             • <strong>Verification:</strong> A quick sponsor ad is required to verify and authorize your withdrawal request.
           </div>
-      </div>
+          
+          <!-- 🎧 Integrated Support Strip -->
+          <div style="margin-top:10px;padding-top:10px;border-top:1px dashed rgba(255,201,74,0.25);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+            <span style="color:var(--cream);font-size:11px;font-weight:700;">Facing transfer or balance sync issues?</span>
+            <button type="button" id="wSupportBtn" style="background:linear-gradient(135deg,#ffdb73,var(--gold));color:#4a2a05;border:0;border-radius:999px;padding:6px 14px;font-family:var(--font-display);font-size:12px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:5px;box-shadow:0 2px 6px rgba(0,0,0,0.35);">
+              <span>🎧</span> Contact 24/7 Support
+            </button>
+          </div>
+        </div>
 
       <!-- Balance & Transfer Card -->
       <div class="wallet-card">
@@ -2870,6 +2883,26 @@ button{font-family:inherit;color:inherit}
   if (gCoin) {
     gCoin.addEventListener('click', () => { ensureAudio(); sfx.click(); showScreen('wallet'); });
   }
+
+  // 🎧 Official Telegram Support Redirect Handler
+  function openSupport() {
+    ensureAudio();
+    sfx.click();
+    const supportUrl = 'https://t.me/MiningFatherhelp';
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink) {
+      window.Telegram.WebApp.openTelegramLink(supportUrl);
+    } else {
+      window.open(supportUrl, '_blank');
+    }
+  }
+
+  // Top Bar Support Button Click
+  const btnHSupport = $('hSupport');
+  if (btnHSupport) btnHSupport.addEventListener('click', openSupport);
+
+  // Withdrawal Note Support Button Click
+  const btnWSupport = $('wSupportBtn');
+  if (btnWSupport) btnWSupport.addEventListener('click', openSupport);
 
   $('wBack').addEventListener('click', () => { 
     ensureAudio(); 
