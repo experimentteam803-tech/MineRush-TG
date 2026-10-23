@@ -214,6 +214,7 @@ button{font-family:inherit;color:inherit}
 .history-right{text-align:right;display:flex;flex-direction:column;gap:2px;align-items:flex-end}
 .history-amount{font-family:var(--font-display);font-size:16px;font-weight:800;color:var(--gold);display:flex;align-items:center;gap:4px}
 .history-status{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.05em;padding:2px 7px;border-radius:6px;background:rgba(91,227,161,0.2);color:#5be3a1}
+.history-status.rejected{background:rgba(255,80,80,0.2);color:#ff7d7d;border:1px solid rgba(255,80,80,0.35)}
 .history-empty{text-align:center;padding:20px 10px;font-size:13px;color:var(--muted);font-weight:600}
 
 /* Modal */
@@ -496,14 +497,14 @@ button{font-family:inherit;color:inherit}
      ⭐ NEW FIREBASE CONFIGURATION (MINE RUSH REALTIME CLOUD SYNC) ⭐
      ===================================================================== */
   const firebaseConfig = {
-    apiKey: "AIzaSyDzmYzLlnxHZQaNkRUc_bz6sMV5toT9nxc",
-    authDomain: "mining-bot-2f220.firebaseapp.com",
-    databaseURL: "https://mining-bot-2f220-default-rtdb.firebaseio.com",
-    projectId: "mining-bot-2f220",
-    storageBucket: "mining-bot-2f220.firebasestorage.app",
-    messagingSenderId: "343763715927",
-    appId: "1:343763715927:web:f1f1840fe029488ddfe012",
-    measurementId: "G-F6KPRL7QSL"
+    apiKey: "AIzaSyAQaGn_6AhqTIwTR5rvGuMh2d1YOBjOCqw",
+    authDomain: "mine-rush-f580a.firebaseapp.com",
+    databaseURL: "https://mine-rush-f580a-default-rtdb.firebaseio.com",
+    projectId: "mine-rush-f580a",
+    storageBucket: "mine-rush-f580a.firebasestorage.app",
+    messagingSenderId: "250630688178",
+    appId: "1:250630688178:web:85e5a51ef43ee937a028ab",
+    measurementId: "G-GDV9ZBZVDF"
   };
 
   let fbApp = null, fbDb = null;
@@ -679,6 +680,7 @@ button{font-family:inherit;color:inherit}
     listEl.innerHTML = history.slice(0, 30).map(item => {
       const d = new Date(item.timestamp || Date.now());
       const dateStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const isRejected = String(item.status || '').includes('Rejected');
       return `
         <div class="history-item">
           <div class="history-left">
@@ -687,7 +689,7 @@ button{font-family:inherit;color:inherit}
           </div>
           <div class="history-right">
             <span class="history-amount"><span class="coin" style="width:14px;height:14px"></span> -${item.amount}</span>
-            <span class="history-status">${escapeHtml(item.status || 'Completed')}</span>
+            <span class="history-status ${isRejected ? 'rejected' : ''}">${escapeHtml(item.status || 'Completed')}</span>
           </div>
         </div>
       `;
@@ -698,6 +700,80 @@ button{font-family:inherit;color:inherit}
     return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
   }
 
+  /* =====================================================================
+     🛡️ MINE RUSH AUTOMATIC ANTI-CHEAT & INTEGRITY AUDITOR
+     ===================================================================== */
+  let lastWithdrawalTime = 0;
+
+  function auditAccountIntegrity(requestedAmount) {
+    const starsObj = save.stars || {};
+    const completedLevelsCount = Object.keys(starsObj).length;
+    const unlockedLevel = Number(save.unlocked) || 1;
+
+    // 1. Level Skipping / Teleport Hack Check (Levels bina khele aage badhana)
+    if (unlockedLevel > completedLevelsCount + 2) {
+      return {
+        safe: false,
+        reason: `Level Skimming Detected! Unlocked: Lvl ${unlockedLevel}, but verified clears: ${completedLevelsCount}`
+      };
+    }
+
+    // 2. Stars Tampering Check (Stars sirf 1, 2, ya 3 hi ho sakte hain)
+    for (const [lvl, st] of Object.entries(starsObj)) {
+      const s = Number(st);
+      if (isNaN(s) || s < 1 || s > 3) {
+        return {
+          safe: false,
+          reason: `Illegal Star modification on Level ${lvl} (Found: ${st} stars)`
+        };
+      }
+    }
+
+    // 3. Mathematical Coin Ceiling Check (Memory Injection / Inspect Element Hack)
+    // Starting: 150 coins. Har level par max 15 coins milte hain.
+    const startingCoins = 150;
+    const maxPossibleEarnedFromLevels = completedLevelsCount * 15;
+    
+    // Purane successful transfers ka total
+    const pastWithdrawalsSum = (save.withdrawals || []).reduce((sum, item) => {
+      return (item.status === 'Sent to App' || item.status === 'Completed') ? sum + Number(item.amount || 0) : sum;
+    }, 0);
+
+    const lifetimeClaimedCoins = Number(save.coins || 0) + pastWithdrawalsSum;
+    const maxTheoreticalCoins = startingCoins + maxPossibleEarnedFromLevels + 50; // 50 buffer
+
+    // Agar user ke coins game ke math se zyada hain -> 100% Hack hai
+    if (lifetimeClaimedCoins > maxTheoreticalCoins) {
+      return {
+        safe: false,
+        reason: `Impossible Coins Count! Earned: ${lifetimeClaimedCoins} C, but maximum possible: ${maxTheoreticalCoins} C`
+      };
+    }
+
+    // 4. Negative Tools Hack Check
+    if (Number(save.hammer) < 0 || Number(save.shuffle) < 0) {
+      return {
+        safe: false,
+        reason: 'Illegal Inventory manipulation detected (Negative tool counts)'
+      };
+    }
+
+    // 5. Automated Script Spam Protection (Minimum 45s ka cooldown)
+    const now = Date.now();
+    if (now - lastWithdrawalTime < 45000) {
+      const waitSec = Math.ceil((45000 - (now - lastWithdrawalTime)) / 1000);
+      return {
+        safe: false,
+        reason: `Withdrawal rate-limit! Please wait ${waitSec}s before requesting again.`
+      };
+    }
+
+    return { safe: true };
+  }
+
+  /* =====================================================================
+     ⭐ SECURE AUTO-AUDIT WITHDRAWAL HANDLER
+     ===================================================================== */
   async function handleWithdrawalSubmit() {
     const uidInput = $('mrUidInput');
     const amtInput = $('mrAmountInput');
@@ -707,6 +783,7 @@ button{font-family:inherit;color:inherit}
     const uid = uidInput.value.trim();
     const amount = parseInt(amtInput.value, 10);
 
+    // Basic Input Validations
     if (!uid) {
       toast('Please enter your Mine Rush Android UID');
       uidInput.focus();
@@ -722,25 +799,74 @@ button{font-family:inherit;color:inherit}
       return;
     }
 
-    // Step 1: User ko inform karein aur Monetag Ad play karein
+    // 🛡️ STEP 1: AUTOMATIC ANTI-CHEAT AUDIT RUN KAREIN
+    const audit = auditAccountIntegrity(amount);
+
+    if (!audit.safe) {
+      sfx.bad();
+      console.warn('[Security Audit Flagged]:', audit.reason);
+
+      if (audit.reason.includes('rate-limit')) {
+        toast('⏳ ' + audit.reason);
+        return;
+      }
+
+      // 🚨 HACK / GLITCH DETECTED -> DIRECT AUTO-REJECT
+      const flaggedTxId = 'REJ-' + Date.now().toString(36).toUpperCase();
+      const rejectedTx = {
+        id: flaggedTxId,
+        uid: uid,
+        amount: amount,
+        status: 'Rejected (Anti-Cheat Flag)',
+        reason: audit.reason,
+        timestamp: Date.now()
+      };
+
+      if (!save.withdrawals) save.withdrawals = [];
+      save.withdrawals.unshift(rejectedTx);
+
+      // Firebase me cheater ka log save karo
+      if (fbDb && firebaseConnected) {
+        fbDb.ref('flagged_cheaters/' + fbUserId + '/' + flaggedTxId).set({
+          ...rejectedTx,
+          playerId: fbUserId,
+          currentCoins: save.coins,
+          unlockedLevel: save.unlocked,
+          totalLevelsBeaten: Object.keys(save.stars || {}).length,
+          telegramUser: tgUser ? { id: tgUser.id, username: tgUser.username || '' } : null
+        }).catch(e => console.warn(e));
+      }
+
+      writeSave();
+      renderWalletScreen();
+
+      // Cheater user ko saaf message dikhao
+      toast('❌ Request Rejected! Suspicious activity detected.');
+      banner('Rejected by Security!', 2200);
+      return;
+    }
+
+    // 🎬 STEP 2: USER IS CLEAN -> MONETAG SPONSOR AD RUN KAREIN
     btn.disabled = true;
     btn.textContent = 'Verifying with Sponsor Ad…';
     toast('Please watch the verification ad to withdraw…');
 
     try {
-      // ⭐ SHOW MONETAG AD FIRST ⭐
       await showMonetagAd();
 
       btn.textContent = 'Processing Transfer…';
 
-      // Step 2: Ad ke baad coins deduct aur Firebase me transfer save karein
+      // 💰 STEP 3: COINS DEDUCT & AUTOMATIC SUCCESS TRANSFER
       save.coins -= amount;
+      lastWithdrawalTime = Date.now();
+
       const txId = 'MR' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 5).toUpperCase();
       const tx = {
         id: txId,
         uid: uid,
         amount: amount,
         status: 'Sent to App',
+        securityChecked: 'Verified Clean',
         timestamp: Date.now()
       };
 
@@ -748,6 +874,8 @@ button{font-family:inherit;color:inherit}
       save.withdrawals.unshift(tx);
 
       writeSave();
+      
+      // MineRush Android App ke Transfer Node me bhej do
       if (fbDb && firebaseConnected) {
         fbDb.ref('mine_rush_transfers/' + txId).set({
           ...tx,
